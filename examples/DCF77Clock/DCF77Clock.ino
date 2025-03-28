@@ -50,7 +50,7 @@ static constexpr int DCF77_PIN = 23;
 // Create alarm, if there are no frames received for longer than this time.
 // Unit is minutes.
 static constexpr unsigned DCF77_FRAME_MISSING_ALARM_TIMEOUT = 3;
-static constexpr int LED_OUT_OF_SYNCH = LED_BUILTIN;
+static constexpr int LED_CLOCK_OUT_OF_SYNCH_ALARM = LED_BUILTIN;
 static constexpr unsigned MSEC_PER_MINUTE = 60000;
 
 class DCF77Clock : public DCF77rx<DCF77_PIN> {
@@ -62,8 +62,8 @@ public:
   }
 
   void begin() {
-    pinMode(LED_OUT_OF_SYNCH, OUTPUT);
-    digitalWrite(LED_OUT_OF_SYNCH, HIGH);
+    pinMode(LED_CLOCK_OUT_OF_SYNCH_ALARM, OUTPUT);
+    digitalWrite(LED_CLOCK_OUT_OF_SYNCH_ALARM, HIGH);
     baseClass::begin();
   }
 
@@ -115,17 +115,17 @@ public:
       if(static_cast<uint32_t>(DCF77_FRAME_MISSING_ALARM_TIMEOUT) * MSEC_PER_MINUTE
           <= millisSinceLastFrame) {
         mAlarm = OUT_OF_SYNCH;
-        digitalWrite(LED_OUT_OF_SYNCH, HIGH);
+        digitalWrite(LED_CLOCK_OUT_OF_SYNCH_ALARM, HIGH);
         Serial.println("Alarm: Dcf77 connection lost.");
       } else {
         if(state == VALID) {
-          digitalWrite(LED_OUT_OF_SYNCH, LOW);
+          digitalWrite(LED_CLOCK_OUT_OF_SYNCH_ALARM, LOW);
         }
       }
     } else {
       if(mAlarm == SYNCH_RECOVERED) {
         mAlarm = IN_SYNC;
-        digitalWrite(LED_OUT_OF_SYNCH, LOW);
+        digitalWrite(LED_CLOCK_OUT_OF_SYNCH_ALARM, LOW);
         Serial.println("Alarm: Dcf77 connection recovered.");
       }
     }
