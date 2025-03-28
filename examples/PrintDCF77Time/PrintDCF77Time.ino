@@ -80,7 +80,7 @@ void loop()
       const uint64_t dcf77frame = myReceiver.getDCF77frame();
       if( dcf77frame ) {
         // convert frame to time structure.
-        DCF77tm time;
+        PrintableDCF77tm time;
         myReceiver.dcf77frame2time(time, dcf77frame);
         Serial.print("DCF77 frame received: ");
         Serial.println(time);

@@ -85,7 +85,7 @@ void DCF77rxbase::onPinInterrupt(int pin) {
 	processPulse(dcf77signal);
 }
 
-void DCF77rxbase::dcf77frame2time(DCF77tm &time, const uint64_t& dcf77frame) {
+void DCF77rxbase::dcf77frame2time(DCF77::tm &time, const uint64_t& dcf77frame) {
 	const DCF77bits& bits = reinterpret_cast<const DCF77bits&>(dcf77frame);
 	time.tm_sec = 0;
 	time.tm_min = bits.Min - ((bits.Min / 16) * 6);

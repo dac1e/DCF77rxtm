@@ -48,17 +48,21 @@ typedef Print print_t;
   /** Use std::tm and std::time_t */
   #include <ctime>
 
-  // See  https://en.cppreference.com/w/cpp/chrono/c/time_t
-  using DCF77time_t = std::time_t;
 
+  namespace DCF77 {
+    // See  https://en.cppreference.com/w/cpp/chrono/c/time_t
+    using time_t = std::time_t;
+    using tm = std::tm;
+  }
 
   // See https://en.cppreference.com/w/cpp/chrono/c/tm
-  struct DCF77tm : public std::tm, public printable_t {
+  struct PrintableDCF77tm : public DCF77::tm, public printable_t {
 
-  static size_t print(print_t& p, const std::tm& time);
+  static size_t print(print_t& p, const DCF77::tm& time);
 #else
   /** Define own tm and time_t */
   namespace DCF77 {
+
     // See https://en.cppreference.com/w/cpp/chrono/c/time_t
     using time_t = uint32_t;
 
@@ -76,38 +80,11 @@ typedef Print print_t;
     };
   }
 
-  using DCF77time_t = DCF77::time_t;
-
-  struct DCF77tm : public DCF77::tm, public printable_t {
-    static size_t print(print_t& p, const DCF77tm& time) {
+  struct PrintableDCF77tm : public DCF77::tm, public printable_t {
+#endif /* HAS_STD_CTIME */
+    static size_t print(print_t& p, const PrintableDCF77tm& time) {
   		return time.printTo(p);
   	}
-#endif /* HAS_STD_CTIME */
-
-    /**
-     * TM_YEAR_BASE is the offset between the Anno Domini
-     * year and tm_year field in the tm structure.
-     */
-   static constexpr int TM_YEAR_BASE = 1900;
-
-    /**
-     * @return the Anno Domini year from the tm_year field
-     *  of this structure.
-     */
-    int year() const {return tm_year + TM_YEAR_BASE;}
-
-    /**
-     * Convert the tm structure to a time_t timestamp
-     *
-     * @return Expired seconds since 1 Jan 0:00:00  1970
-     */
-    DCF77time_t toTimeStamp() const;
-
-    /**
-     * Set this tm structure from a time_t timestamp and
-     * daylight savings flag.
-     */
-    void set(const DCF77time_t timestamp, const int isdst);
 
     /**
      * Implementation of the Printable interface, which
@@ -116,14 +93,14 @@ typedef Print print_t;
      * @return The number of printed characters.
      *
      * Example:
-     *   DCF77tm tm;
+     *   PrintableDCF77tm tm;
      *
      *   tm.tm_hour = 15;
      *   tm.tm_min = 10;
      *   tm.tm_sec = 30;
      *   tm.tm_mday = 23;
      *   tm.tm_mon = 1;
-     *   tm.tm_year = 2025 - DCF77tm::TM_YEAR_BASE;
+     *   tm.tm_year = 2025 - DCF77::TM_YEAR_BASE;
      *   tm.tm_isdst = 0;
      *
      *   Serial.println(tm);
@@ -131,5 +108,34 @@ typedef Print print_t;
     size_t printTo(print_t& p) const override;
   };
 
+  namespace DCF77 {
+    /**
+      * TM_YEAR_BASE is the offset between the Anno Domini
+      * year and tm_year field in the tm structure.
+      *
+      * The Anno Domini year is tm.tm_year + DCF77::TM_YEAR_BASE;
+      */
+    static constexpr int TM_YEAR_BASE = 1900;
+
+    /**
+     * Convert a time stamp to a tm structure without time zone conversion.
+     *  Hence a local time stamp will return a local tm structure and
+     *  a UTC time stamp will return a UTC tm structure.
+     *
+     *  @param[out] tm The time structure will carry the result.
+     *  @param[in] timestamp The timestamp to be converted.
+     */
+    void timestamp_to_tm(DCF77::tm& tm, const DCF77::time_t timestamp, const int isdst);
+
+    /**
+     * Convert a tm structure to a time stamp without time zone conversion.
+     *  Hence a local tm structure will return a local time stamp and
+     *  a UTC tm structure will return a UTC time stamp.
+     *
+     *  @param[in] tm the tm structure to be converted
+     *  @return the time stamp result.
+     *  */
+    DCF77::time_t tm_to_timestamp(const DCF77::tm& tm);
+  }
 
 #endif /* DCF77tm_H_ */

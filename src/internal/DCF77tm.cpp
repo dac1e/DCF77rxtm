@@ -94,8 +94,8 @@ inline int leapYearsSince1970 (const int year) {
 /**
  * Calculate the expired days since 1st of January.
  */
-inline int yday(const DCF77tm& tm) {
-  const int leapYear = isLeapYear(tm.year());
+inline int yday(const DCF77::tm& tm) {
+  const int leapYear = isLeapYear(tm.tm_yday + DCF77::TM_YEAR_BASE);
   const int month = tm.tm_mon;
   const int yday_ = month_yday[leapYear][month];
   const uint8_t day = tm.tm_mday;
@@ -106,14 +106,14 @@ inline int yday(const DCF77tm& tm) {
 
 #if HAS_STD_CTIME
 
-size_t DCF77tm::print(print_t& p, const std::tm& time) {
+size_t PrintableDCF77tm::print(print_t& p, const DCF77::tm& time) {
   char buffer[26];
   asctime_r(&time, buffer);
   buffer[24] = '\0'; // remove /n
   return p.print(buffer);
 }
 
-size_t DCF77tm::printTo(print_t& p) const {
+size_t PrintableDCF77tm::printTo(print_t& p) const {
   return print(p, *this);
 }
 
@@ -122,7 +122,7 @@ size_t DCF77tm::printTo(print_t& p) const {
 static const char* MO[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 static const char* WD[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
-size_t DCF77tm::printTo(print_t& p) const {
+size_t PrintableDCF77tm::printTo(print_t& p) const {
   size_t n = 0;
 
   n+= p.print(WD[tm_wday]); // day of week
@@ -148,16 +148,18 @@ size_t DCF77tm::printTo(print_t& p) const {
 
 #endif
 
-DCF77time_t DCF77tm::toTimeStamp() const {
-  using time_t = DCF77time_t;
-  const bool leapYear = isLeapYear(year());
-  const time_t leapYearsBeforeThisYear = leapYearsSince1970(year()) - leapYear;
-  const time_t yearOffset = year() - 1970;
-  const time_t result = tm_sec + (tm_min + (tm_hour + (yday(*this) + leapYearsBeforeThisYear + yearOffset * 365) * 24) * 60) * 60;
+namespace DCF77 {
+
+DCF77::time_t tm_to_timestamp(const DCF77::tm& tm) {
+  using time_t = DCF77::time_t;
+  const bool leapYear = isLeapYear(tm.tm_year + DCF77::TM_YEAR_BASE);
+  const time_t leapYearsBeforeThisYear = leapYearsSince1970(tm.tm_year + DCF77::TM_YEAR_BASE) - leapYear;
+  const time_t yearOffset = (tm.tm_year + DCF77::TM_YEAR_BASE) - 1970;
+  const time_t result = tm.tm_sec + (tm.tm_min + (tm.tm_hour + (yday(tm) + leapYearsBeforeThisYear + yearOffset * 365) * 24) * 60) * 60;
   return result;
 }
 
-void DCF77tm::set(const DCF77time_t timestamp, const int isdst)
+void timestamp_to_tm(DCF77::tm& tm, const DCF77::time_t timestamp, const int isdst)
 {
   PRINT_VARIABLE(timestamp);
   long days = timestamp / SECSPERDAY + EPOCH_ADJUSTMENT_DAYS;
@@ -171,16 +173,16 @@ void DCF77tm::set(const DCF77time_t timestamp, const int isdst)
   PRINT_VARIABLE(remain);
 
   /* compute day of week */
-  tm_wday = ((((ADJUSTED_EPOCH_WDAY + DAYSPERWEEK) + days) % DAYSPERWEEK));
+  tm.tm_wday = ((((ADJUSTED_EPOCH_WDAY + DAYSPERWEEK) + days) % DAYSPERWEEK));
   PRINT_VARIABLE(tm_wday);
 
   /* compute hour, min, and sec */
-  tm_hour = (remain / SECSPERHOUR);
+  tm.tm_hour = (remain / SECSPERHOUR);
   remain %= SECSPERHOUR;
   PRINT_VARIABLE(remain);
-  tm_min = (remain / SECSPERMIN);
+  tm.tm_min = (remain / SECSPERMIN);
   PRINT_VARIABLE(tm_min);
-  tm_sec = (remain % SECSPERMIN);
+  tm.tm_sec = (remain % SECSPERMIN);
   PRINT_VARIABLE(tm_sec);
 
   /* compute year, month, day & day of year. For description of this algorithm see
@@ -199,13 +201,14 @@ void DCF77tm::set(const DCF77time_t timestamp, const int isdst)
   const unsigned month = m < 10 ? m + 2 : m - 10;
   PRINT_VARIABLE(month);
 
-  tm_mday = yearday - (153 * m + 2) / 5 + 1;  /* [1, 31] */
+  tm.tm_mday = yearday - (153 * m + 2) / 5 + 1;  /* [1, 31] */
   PRINT_VARIABLE(tm_mday);
-  tm_mon = month;
+  tm.tm_mon = month;
   PRINT_VARIABLE(tm_mon);
-  tm_year = ADJUSTED_EPOCH_YEAR - TM_YEAR_BASE + erayear + era * YEARS_PER_ERA + (month <= 1);
+  tm.tm_year = ADJUSTED_EPOCH_YEAR - DCF77::TM_YEAR_BASE + erayear + era * YEARS_PER_ERA + (month <= 1);
   PRINT_VARIABLE(tm_year);
-  tm_isdst = isdst;
+  tm.tm_isdst = isdst;
   PRINT_VARIABLE(tm_isdst);
 }
 
+} // namespace DCF77

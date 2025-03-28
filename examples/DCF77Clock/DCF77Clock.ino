@@ -76,7 +76,7 @@ public:
    *
    * @return false, as long as no Dcf77 frame was received.
    */
-  bool getTime(DCF77tm& tm, unsigned* millisec) {
+  bool getTime(DCF77::tm& tm, unsigned* millisec) {
     if(mState != INVALID) {
       // Disable interrupts to avoid race condition with onDCF77FrameReceived()
       // which is updating mSystickAtLastFrame and mLastDcf77Frame.
@@ -87,9 +87,9 @@ public:
 
       const uint32_t secSinceLastFrame = millisSinceLastFrame / 1000;
       dcf77frame2time(tm, dcf77frame);
-      const DCF77time_t timestamp = tm.toTimeStamp();
+      const DCF77::time_t timestamp = DCF77::tm_to_timestamp(tm);
 
-      tm.set(timestamp + secSinceLastFrame, tm.tm_isdst);
+      DCF77::timestamp_to_tm(tm, timestamp + secSinceLastFrame, tm.tm_isdst);
       if(millisec != nullptr) {
         *millisec = millisSinceLastFrame % 1000;
       }
@@ -135,7 +135,7 @@ public:
       noInterrupts();
       const uint64_t dcf77frame = mLastDcf77Frame;
       interrupts();
-      DCF77tm tm;
+      PrintableDCF77tm tm;
       dcf77frame2time(tm, dcf77frame);
       Serial.print("Dcf77 frame received: ");
       Serial.println(tm);
@@ -196,7 +196,7 @@ void loop()
 
   const uint32_t systick = millis();
   if(systick - lastSystick >= PRINTOUT_PERIOD * 1000) {
-    DCF77tm tm;
+    PrintableDCF77tm tm;
     if(dcf77Clock.getTime(tm, nullptr) ) {
       Serial.print(tm);
       Serial.print(", isdst=");

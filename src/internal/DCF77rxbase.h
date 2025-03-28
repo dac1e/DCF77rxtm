@@ -53,7 +53,7 @@ public:
    * @param[out] time The dcf77 bits as time structure.
    * @param[in] dcf77frame The dcf77 frame.
    */
-	static void dcf77frame2time(DCF77tm &time, const uint64_t& dcf77frame);
+	static void dcf77frame2time(DCF77::tm &time, const uint64_t& dcf77frame);
 
 protected:
 	struct DCF77pulse {uint32_t mPulseTime = 0; int mPulseLevel = 1;};
