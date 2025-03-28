@@ -1,0 +1,20 @@
+#######################################
+# Syntax Coloring Map For DCF77rxtm
+#######################################
+
+#######################################
+# Datatypes
+#######################################
+
+DCF77rx         KEYWORD1
+DCF77tm         KEYWORD1
+DCF77time_t     KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin					KEYWORD2
+dcf77frame2time			KEYWORD2
+onDCF77FrameReceived	KEYWORD2
+toTimeStamp				KEYWORD2
