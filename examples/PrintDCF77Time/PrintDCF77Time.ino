@@ -27,7 +27,7 @@
  * print them on Serial.
  */
 
-#include "DCF77rx.h"
+#include "DCF77rxtm.h"
 
 static constexpr int DCF77_PIN = 2;
 

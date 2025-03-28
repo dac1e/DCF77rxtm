@@ -24,12 +24,13 @@
 
 #pragma once
 
-#ifndef DCF77rx_H_
-#define DCF77rx_H_
+#ifndef DCF77rxtm_H_
+#define DCF77rxtm_H_
 
 #include <stdint.h>
-#include "internal/ISR_ATTR.h"
 #include <Arduino.h>
+#include "DCF77tm.h"
+#include "internal/ISR_ATTR.h"
 #include "internal/DCF77rxbase.h"
 
 /**
@@ -100,4 +101,4 @@ template<int RECEIVER_PIN>
 
 DCF77rxbase *DCF77rx<RECEIVER_PIN>::mInstance = nullptr;
 
-#endif /* DCF77rx_H_ */
+#endif /* DCF77rxtm_H_ */

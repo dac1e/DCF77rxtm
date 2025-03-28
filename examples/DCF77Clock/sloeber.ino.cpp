@@ -5,7 +5,7 @@
 //This file has been generated on 2025-02-22 14:53:56
 
 #include "Arduino.h"
-#include "DCF77rx.h"
+#include "DCF77rxtm.h"
 
 void setup() ;
 void loop() ;

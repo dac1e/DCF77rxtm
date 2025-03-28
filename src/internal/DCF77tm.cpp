@@ -106,15 +106,19 @@ inline int yday(const DCF77::tm& tm) {
 
 #if HAS_STD_CTIME
 
-size_t PrintableDCF77tm::print(print_t& p, const DCF77::tm& time) {
+namespace DCF77 {
+
+size_t print_tm(print_t& p, const DCF77::tm& time) {
   char buffer[26];
   asctime_r(&time, buffer);
   buffer[24] = '\0'; // remove /n
   return p.print(buffer);
 }
 
+}
+
 size_t PrintableDCF77tm::printTo(print_t& p) const {
-  return print(p, *this);
+  return DCF77::print_tm(p, *this);
 }
 
 #else
@@ -122,28 +126,36 @@ size_t PrintableDCF77tm::printTo(print_t& p) const {
 static const char* MO[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 static const char* WD[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 
-size_t PrintableDCF77tm::printTo(print_t& p) const {
+namespace DCF77 {
+
+size_t print_tm(print_t& p, const DCF77::tm& time) {
   size_t n = 0;
 
-  n+= p.print(WD[tm_wday]); // day of week
+  n+= p.print(WD[time.tm_wday]); // day of week
   n+= p.print(" ");
-  n+= p.print(MO[tm_mon]);  // month
+  n+= p.print(MO[time.tm_mon]);  // month
   n+= p.print(" ");
-  n+= p.print(tm_mday);     // day of month
+  n+= p.print(time.tm_mday);     // day of month
 
   n+= p.print(" ");
-  if(tm_hour < 10) {n+= p.print('0');}
-  n+= p.print(tm_hour); // hour
+  if(time.tm_hour < 10) {n+= p.print('0');}
+  n+= p.print(time.tm_hour); // hour
   n+= p.print(":");
-  if(tm_min < 10) {n+= p.print('0');}
-  n+= p.print(tm_min);  // minute
+  if(time.tm_min < 10) {n+= p.print('0');}
+  n+= p.print(time.tm_min);  // minute
   n+= p.print(":");
-  if(tm_sec < 10) {n+= p.print('0');}
-  n+= p.print(tm_sec);  // second
+  if(time.tm_sec < 10) {n+= p.print('0');}
+  n+= p.print(time.tm_sec);  // second
 
   n+= p.print(" ");
-  n+= p.print(tm_year + 1900); // year
+  n+= p.print(time.tm_year + 1900); // year
   return n;
+}
+
+} // namespace DCF77
+
+size_t PrintableDCF77tm::printTo(print_t& p) const {
+  return DCF77::print_tm(p, *this);
 }
 
 #endif

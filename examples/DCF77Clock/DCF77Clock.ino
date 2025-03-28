@@ -26,7 +26,7 @@
  * Receive frames from dcf77, to synchronize a software clock.
  */
 
-#include "DCF77rx.h"
+#include "DCF77rxtm.h"
 
 /**
  * The clock needs an initial Dcf77 frame to start. Seconds

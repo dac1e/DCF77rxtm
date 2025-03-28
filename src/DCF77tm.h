@@ -48,24 +48,19 @@ typedef Print print_t;
   /** Use std::tm and std::time_t */
   #include <ctime>
 
-
   namespace DCF77 {
     // See  https://en.cppreference.com/w/cpp/chrono/c/time_t
     using time_t = std::time_t;
+    // See https://en.cppreference.com/w/cpp/chrono/c/tm
     using tm = std::tm;
   }
 
-  // See https://en.cppreference.com/w/cpp/chrono/c/tm
-  struct PrintableDCF77tm : public DCF77::tm, public printable_t {
-
-  static size_t print(print_t& p, const DCF77::tm& time);
 #else
   /** Define own tm and time_t */
   namespace DCF77 {
 
     // See https://en.cppreference.com/w/cpp/chrono/c/time_t
     using time_t = uint32_t;
-
     // See https://en.cppreference.com/w/cpp/chrono/c/tm
     struct tm {
       int tm_sec;
@@ -79,13 +74,9 @@ typedef Print print_t;
       int tm_isdst; // daylight savings active = 1
     };
   }
+#endif /* HAS_STD_CTIME */
 
   struct PrintableDCF77tm : public DCF77::tm, public printable_t {
-#endif /* HAS_STD_CTIME */
-    static size_t print(print_t& p, const PrintableDCF77tm& time) {
-  		return time.printTo(p);
-  	}
-
     /**
      * Implementation of the Printable interface, which
      * allows to print this tm structure.
@@ -108,6 +99,7 @@ typedef Print print_t;
     size_t printTo(print_t& p) const override;
   };
 
+  // Useful functions for DCF::tm structure and DCF::time_t type.
   namespace DCF77 {
     /**
       * TM_YEAR_BASE is the offset between the Anno Domini
@@ -136,6 +128,26 @@ typedef Print print_t;
      *  @return the time stamp result.
      *  */
     DCF77::time_t tm_to_timestamp(const DCF77::tm& tm);
+
+    /**
+     * Print a tm structure on print_t interface, which
+     *
+     * @return The number of printed characters.
+     *
+     * Example:
+     *   DCF77::tm tm;
+     *
+     *   tm.tm_hour = 15;
+     *   tm.tm_min = 10;
+     *   tm.tm_sec = 30;
+     *   tm.tm_mday = 23;
+     *   tm.tm_mon = 1;
+     *   tm.tm_year = 2025 - DCF77::TM_YEAR_BASE;
+     *   tm.tm_isdst = 0;
+     *
+     *   print_tm(Serial, tm);
+     */
+    size_t print_tm(print_t& p, const DCF77::tm& time);
   }
 
 #endif /* DCF77tm_H_ */
